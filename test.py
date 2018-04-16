@@ -2,12 +2,13 @@
 #
 #Created by lee
 #
-#2018-04-15
+#2018-04-16
 
 import tensorflow as tf
 import numpy as np
 import os
 import cv2
+import colorsys
 import argparse
 import yolo.config as cfg
 from yolo.yolo_net import YOLONet
@@ -35,13 +36,15 @@ class Detector(object):
         self.saver.restore(self.sess, self.weights_file)
 
     def draw_result(self, img, result):
+        colors = self.random_colors(len(result)) #生成不同颜色的框
         for i in range(len(result)):
             x = int(result[i][1])
             y = int(result[i][2])
             w = int(result[i][3] / 2)
             h = int(result[i][4] / 2)
-            cv2.rectangle(img, (x - w, y - h), (x + w, y + h), (0, 255, 0), 2)
-            cv2.putText(img, result[i][0] + ' : %.2f' % result[i][5], (x - w + 5, y - h -7), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+            color = tuple([rgb * 255 for rgb in colors[i]])
+            cv2.rectangle(img, (x - w, y - h), (x + w, y + h), color, 1)
+            cv2.putText(img, result[i][0], (x - w + 1, y - h + 8), cv2.FONT_HERSHEY_COMPLEX_SMALL, 0.5, color, 1)
             print(result[i][0],': %.2f%%' % (result[i][5]*100))
 
     def detect(self, img):
@@ -132,6 +135,13 @@ class Detector(object):
             intersection = tb * lr
         return intersection / (box1[2] * box1[3] + box2[2] * box2[3] - intersection)
 
+    def random_colors(self, N, bright=True):
+        brightness = 1.0 if bright else 0.7
+        hsv = [(i / N, 1, brightness) for i in range(N)]
+        colors = list(map(lambda c: colorsys.hsv_to_rgb(*c), hsv))
+        np.random.shuffle(colors)
+        return colors
+
     def camera_detector(self, cap, wait=10):
         while(1):
             ret, frame = cap.read()
@@ -153,13 +163,12 @@ class Detector(object):
         cv2.imshow('Image', image)
         cv2.waitKey(wait)
 
-
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', default="YOLO_v1.ckpt-10000", type=str)#YOLO_small.ckpt
+    parser.add_argument('--weights', default="YOLO_small.ckpt", type=str)#YOLO_small.ckpt
     parser.add_argument('--weight_dir', default='output', type=str)
     parser.add_argument('--data_dir', default="data", type=str)
-    parser.add_argument('--gpu', default= '0', type=str)
+    parser.add_argument('--gpu', default= '', type=str)
     args = parser.parse_args()
 
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
