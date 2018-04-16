@@ -12,7 +12,6 @@ DATA_PATH = 'data'
 PASCAL_PATH = os.path.join(DATA_PATH, 'Pascal_voc')
 OUTPUT_DIR = os.path.join(DATA_PATH, 'output') #输出文件路径
 WEIGHTS = 'YOLO_small.ckpt'
-WEIGHTS_FILE = os.path.join(OUTPUT_DIR, WEIGHTS) #weights文件路径
 
 CLASSES = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus',
            'car', 'cat', 'chair', 'cow', 'diningtable', 'dog', 'horse',
