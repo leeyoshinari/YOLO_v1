@@ -11,8 +11,7 @@ This implementation of [YOLO](https://arxiv.org/pdf/1506.02640.pdf).
 
 2. Download Pascal VOC2007 dataset, and put the dataset into `data/Pascal_voc`
 
-3. Download weights file [YOLO_small](https://drive.google.com/file/d/0B5aC8pI-akZUNVFZMmhmcVRpbTA/view?usp=sharing)
-Put weight file into `data/output`
+3. Download weights file [YOLO_small](https://drive.google.com/file/d/0B5aC8pI-akZUNVFZMmhmcVRpbTA/view?usp=sharing), and put weight file into `data/output`
 
 4. Modify configuration into `yolo/config.py`
 
