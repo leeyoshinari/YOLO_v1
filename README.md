@@ -13,6 +13,8 @@ This implementation of [YOLO](https://arxiv.org/pdf/1506.02640.pdf).
 
 3. Download weights file [YOLO_small](https://drive.google.com/file/d/0B5aC8pI-akZUNVFZMmhmcVRpbTA/view?usp=sharing), and put weight file into `data/output`
 
+   Or you can also download my training weights file [YOLO_v1](https://pan.baidu.com/s/1b_X2qvtrkLn6MH7VZDxYgA).
+
 4. Modify configuration into `yolo/config.py`
 
 5. Training
