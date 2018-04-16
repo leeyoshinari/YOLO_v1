@@ -9,7 +9,9 @@ This implementation of [YOLO](https://arxiv.org/pdf/1506.02640.pdf).
     $ cd YOLO_v1
 	```
 
-2. Download Pascal VOC2007 dataset, and put the dataset into `data/Pascal_voc`
+2. Download Pascal VOC2007 dataset, and put the dataset into `data/Pascal_voc`.
+
+   if you download other dataset, you also need to modify file paths.
 
 3. Download weights file [YOLO_small](https://drive.google.com/file/d/0B5aC8pI-akZUNVFZMmhmcVRpbTA/view?usp=sharing), and put weight file into `data/output`
 
