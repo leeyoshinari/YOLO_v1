@@ -32,7 +32,7 @@ This implementation of [YOLO](https://arxiv.org/pdf/1506.02640.pdf).
 ## Training on Your Own Dataset
 To train the model on your own dataset, you should need to modefy:
 <br>
-1. Put all the images into the `Images` folder, put all the labels into the `Labels` folder.Select a part of the image for training, write this part of the image filename into `train.txt`, the remaining part of the image filename written in `test.txt`.Then put the `Images`, `Labels`, `train.txt` and `test.txt` into `data/data_set`.Put weight file in `data/output`
+1. Put all the images into the `Images` folder, put all the labels into the `Labels` folder. Select a part of the images for training, write this part of the images filename into `train.txt`, the remaining part of the images filename written in `test.txt`. Then put the `Images`, `Labels`, `train.txt` and `test.txt` into `data/data_set`. Put weight file in `data/output`
 2. `config.py` modify the CLASSES
 3. `train.py` replace`from utils.pascal_voc import pascal_voc` with `from utils.preprocess import preprocess`, and replace `pascal = pascal_voc()` with `pascal = preprocess()`.
 
