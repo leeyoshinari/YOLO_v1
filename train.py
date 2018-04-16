@@ -20,7 +20,7 @@ class Solver(object):
         self.net = net
         self.data = data
         self.batch_size = cfg.BATCH_SIZE
-        self.weights_file = cfg.WEIGHTS_FILE
+        self.weights_file = os.path.join(cfg.OUTPUT_DIR, cfg.WEIGHTS) #weights文件路径
         self.max_step = cfg.MAX_STEP
         self.initial_learning_rate = cfg.LEARNING_RATE
         self.decay_steps = cfg.DECAY_STEPS
