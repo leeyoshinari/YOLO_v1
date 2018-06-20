@@ -1,8 +1,8 @@
 # -*- coding:utf-8 -*-
 #
-#Created by lee
+# Created by lee
 #
-#2018-04-16
+# 2018-04-16
 
 import numpy as np
 import tensorflow as tf
@@ -131,14 +131,14 @@ class YOLONet(object):
 
     def loss_layer(self, predicts, labels, scope='loss_layer'):
         with tf.variable_scope(scope):
-            predict_classes = tf.reshape(predicts[:, :self.boundary1], [self.batch_size, self.cell_size, self.cell_size, self.num_class]) #预测的类
-            predict_scales = tf.reshape(predicts[:, self.boundary1:self.boundary2], [self.batch_size, self.cell_size, self.cell_size, self.boxes_per_cell]) #预测的置信度
-            predict_boxes = tf.reshape(predicts[:, self.boundary2:], [self.batch_size, self.cell_size, self.cell_size, self.boxes_per_cell, 4]) #预测的坐标
+            predict_classes = tf.reshape(predicts[:, :self.boundary1], [self.batch_size, self.cell_size, self.cell_size, self.num_class])
+            predict_scales = tf.reshape(predicts[:, self.boundary1:self.boundary2], [self.batch_size, self.cell_size, self.cell_size, self.boxes_per_cell])
+            predict_boxes = tf.reshape(predicts[:, self.boundary2:], [self.batch_size, self.cell_size, self.cell_size, self.boxes_per_cell, 4])
 
-            response = tf.reshape(labels[:, :, :, 0], [self.batch_size, self.cell_size, self.cell_size, 1]) #真实的置信度
-            boxes = tf.reshape(labels[:, :, :, 1:5], [self.batch_size, self.cell_size, self.cell_size, 1, 4]) #真实的坐标
-            boxes = tf.tile(boxes, [1, 1, 1, self.boxes_per_cell, 1]) / self.image_size #数组扩维
-            classes = labels[:, :, :, 5:] #真实的类
+            response = tf.reshape(labels[:, :, :, 0], [self.batch_size, self.cell_size, self.cell_size, 1])
+            boxes = tf.reshape(labels[:, :, :, 1:5], [self.batch_size, self.cell_size, self.cell_size, 1, 4])
+            boxes = tf.tile(boxes, [1, 1, 1, self.boxes_per_cell, 1]) / self.image_size
+            classes = labels[:, :, :, 5:]
 
             offset = tf.constant(self.offset, dtype=tf.float32)
             offset = tf.reshape(offset, [1, self.cell_size, self.cell_size, self.boxes_per_cell])
@@ -149,12 +149,12 @@ class YOLONet(object):
                                            tf.square(predict_boxes[:, :, :, :, 3])])
             predict_boxes_tran = tf.transpose(predict_boxes_tran, [1, 2, 3, 4, 0])
 
-            iou_predict_truth = self.calc_iou(predict_boxes_tran, boxes) #计算IOU
+            iou_predict_truth = self.calc_iou(predict_boxes_tran, boxes)
 
-            object_mask = tf.reduce_max(iou_predict_truth, 3, keep_dims=True) #在第三维上找最大值，即预测的两个box中IOU最大的
-            object_mask = tf.cast((iou_predict_truth >= object_mask), tf.float32) * response #生成有目标区域的掩码
+            object_mask = tf.reduce_max(iou_predict_truth, 3, keep_dims=True)
+            object_mask = tf.cast((iou_predict_truth >= object_mask), tf.float32) * response
 
-            noobject_mask = tf.ones_like(object_mask, dtype=tf.float32) - object_mask #生成没有目标区域的掩码
+            noobject_mask = tf.ones_like(object_mask, dtype=tf.float32) - object_mask
 
             boxes_tran = tf.stack([1. * boxes[:, :, :, :, 0] * self.cell_size - offset,
                                    1. * boxes[:, :, :, :, 1] * self.cell_size - tf.transpose(offset, (0, 2, 1, 3)),
