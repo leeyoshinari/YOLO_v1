@@ -1,8 +1,8 @@
 # -*- coding:utf-8 -*-
 #
-#Created by lee
+# Created by lee
 #
-#2018-04-16
+# 2018-04-16
 
 import tensorflow as tf
 import datetime
@@ -20,7 +20,7 @@ class Solver(object):
         self.net = net
         self.data = data
         self.batch_size = cfg.BATCH_SIZE
-        self.weights_file = os.path.join(cfg.OUTPUT_DIR, cfg.WEIGHTS) #weights文件路径
+        self.weights_file = os.path.join(cfg.OUTPUT_DIR, cfg.WEIGHTS)
         self.max_step = cfg.MAX_STEP
         self.initial_learning_rate = cfg.LEARNING_RATE
         self.decay_steps = cfg.DECAY_STEPS
@@ -29,7 +29,7 @@ class Solver(object):
         self.summary_step = cfg.SUMMARY_STEP
         self.save_step = cfg.SAVE_STEP
         self.output_dir = cfg.OUTPUT_DIR
-        self.save_cfg() #写配置文件
+        self.save_cfg()
 
         variable_to_restore = tf.global_variables()
         self.saver = tf.train.Saver(variable_to_restore)
@@ -43,13 +43,12 @@ class Solver(object):
         #self.optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.learning_rate).minimize(
         #    self.net.total_loss, global_step=self.global_step)
         self.optimizer = tf.train.AdamOptimizer(learning_rate = self.learning_rate).minimize(
-            self.net.total_loss, global_step = self.global_step) #梯度下降优化算法
-        self.ema = tf.train.ExponentialMovingAverage(decay=0.999) #动量
+            self.net.total_loss, global_step = self.global_step)
+        self.ema = tf.train.ExponentialMovingAverage(decay=0.999)
         self.averages_op = self.ema.apply(tf.trainable_variables())
         with tf.control_dependencies([self.optimizer]):
             self.train_op = tf.group(self.averages_op)
 
-        #配置GPU
         gpu_options = tf.GPUOptions()
         config = tf.ConfigProto(gpu_options=gpu_options)
 
@@ -66,27 +65,23 @@ class Solver(object):
         self.saver = tf.train.Saver(variable_to_restore)
 
     def train(self):
-        gt_labels = self.data.prepare('train') #读入训练用的数据
-        gt_labels_t = self.data.prepare('test') #读入测试用的数据
+        gt_labels = self.data.prepare('train')
+        gt_labels_t = self.data.prepare('test')
 
-        start_time = time.time() #开始训练时间
+        start_time = time.time()
 
         for step in xrange(0, self.max_step + 1):
-            images, labels = self.data.next_batches(gt_labels, self.batch_size) #读入images和labels用于训练
+            images, labels = self.data.next_batches(gt_labels, self.batch_size)
             feed_dict = {self.net.images: images, self.net.labels: labels}
 
             if step % self.summary_step == 0:
                 if step % (self.summary_step * 5) == 0:
                     summary_str, loss, _ = self.sess.run([self.summary_op, self.net.total_loss, self.train_op], feed_dict=feed_dict)
-
-                    '''
-                    sum_loss为计算的损失，group为每次测试数据的组数，每组数据有batch_size个
-                    即：sum_loss为 group*batch_size 张图片的损失，sum_loss/10为测试集损失
-                    '''
+                    
                     sum_loss = 0
                     group = 10 
                     for num_ in xrange(0, group):
-                        test_images, test_labels = self.data.next_batches_test(gt_labels_t, self.batch_size) #读入images和labels用于测试
+                        test_images, test_labels = self.data.next_batches_test(gt_labels_t, self.batch_size)
                         feed_dict_test = {self.net.images: test_images, self.net.labels: test_labels}
                         loss_t = self.sess.run(self.net.total_loss, feed_dict=feed_dict_test)
                         sum_loss += loss_t
@@ -94,19 +89,19 @@ class Solver(object):
                     log_str = ('{} Epoch: {}, Step: {}, Loss_train: {:.4f}, Loss_test: {:.4f}, Remain: {}').format(
                         datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), self.data.epoch, step, loss,
                         1. * sum_loss / group, self.remain(start_time, step))
-                    print(log_str) #打印日志
+                    print(log_str)
 
                 else:
                     summary_str, _ = self.sess.run([self.summary_op, self.train_op], feed_dict=feed_dict)
 
-                self.writer.add_summary(summary_str, step) #输出到tensorboard
+                self.writer.add_summary(summary_str, step)
                 if loss >= 1000:
                     break
             else:
                 self.sess.run(self.train_op, feed_dict=feed_dict)
 
             if step % self.save_step == 0:
-                self.saver.save(self.sess, self.output_dir + '/YOLO_v1.ckpt', global_step = step) #保存训练weights
+                self.saver.save(self.sess, self.output_dir + '/YOLO_v1.ckpt', global_step = step)
 
         self.sess.close()
 
@@ -129,8 +124,8 @@ class Solver(object):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', default="YOLO_small.ckpt", type=str) #weights文件名
-    parser.add_argument('--gpu', default='0', type=str) #指定使用GPU号
+    parser.add_argument('--weights', default="YOLO_small.ckpt", type=str)
+    parser.add_argument('--gpu', default='0', type=str)
     args = parser.parse_args()
 
     if args.gpu is not None:
