@@ -1,8 +1,8 @@
 # -*- coding:utf-8 -*-
 #
-#Created by lee
+# Created by lee
 #
-#2018-04-16
+# 2018-04-16
 
 import tensorflow as tf
 import numpy as np
@@ -36,7 +36,7 @@ class Detector(object):
         self.saver.restore(self.sess, self.weights_file)
 
     def draw_result(self, img, result):
-        colors = self.random_colors(len(result)) #生成不同颜色的框
+        colors = self.random_colors(len(result))
         for i in range(len(result)):
             x = int(result[i][1])
             y = int(result[i][2])
@@ -56,7 +56,6 @@ class Detector(object):
 
         result = self.detect_from_cvmat(inputs)[0]
 
-        #将boxes坐标缩放至原图
         for i in range(len(result)):
             result[i][1] *= (1.0 * img_w / self.image_size)
             result[i][2] *= (1.0 * img_h / self.image_size)
@@ -66,7 +65,7 @@ class Detector(object):
         return result
 
     def detect_from_cvmat(self, inputs):
-        net_output = self.sess.run(self.net.logits, feed_dict={self.net.images: inputs}) #检测图像
+        net_output = self.sess.run(self.net.logits, feed_dict={self.net.images: inputs})
         results = []
         for i in range(net_output.shape[0]):
             results.append(self.interpret_output(net_output[i]))
@@ -75,9 +74,9 @@ class Detector(object):
 
     def interpret_output(self, output):
         probs = np.zeros((self.cell_size, self.cell_size, self.boxes_per_cell, self.num_class))
-        class_probs = np.reshape(output[0:self.boundary1], (self.cell_size, self.cell_size, self.num_class)) #预测的class
-        scales = np.reshape(output[self.boundary1:self.boundary2], (self.cell_size, self.cell_size, self.boxes_per_cell)) #预测的置信度
-        boxes = np.reshape(output[self.boundary2:], (self.cell_size, self.cell_size, self.boxes_per_cell, 4)) #预测的boxes坐标
+        class_probs = np.reshape(output[0:self.boundary1], (self.cell_size, self.cell_size, self.num_class))
+        scales = np.reshape(output[self.boundary1:self.boundary2], (self.cell_size, self.cell_size, self.boxes_per_cell))
+        boxes = np.reshape(output[self.boundary2:], (self.cell_size, self.cell_size, self.boxes_per_cell, 4))
         offset = np.transpose(np.reshape(np.array([np.arange(self.cell_size)] * self.cell_size * self.boxes_per_cell),
                                          [self.boxes_per_cell, self.cell_size, self.cell_size]), (1, 2, 0))#7*7*2
 
@@ -90,20 +89,19 @@ class Detector(object):
 
         for i in range(self.boxes_per_cell):
             for j in range(self.num_class):
-                probs[:, :, i, j] = np.multiply(class_probs[:, :, j], scales[:, :, i]) #计算概率
+                probs[:, :, i, j] = np.multiply(class_probs[:, :, j], scales[:, :, i])
 
-        filter_mat_probs = np.array(probs >= self.threshold, dtype='bool') #生成大于阈值的0-1掩码
-        filter_mat_boxes = np.nonzero(filter_mat_probs) #找出非0元素的数组下标
-        boxes_filtered = boxes[filter_mat_boxes[0], filter_mat_boxes[1], filter_mat_boxes[2]] #找出对应的坐标
-        probs_filtered = probs[filter_mat_probs] #找出对应的概率
-        classes_num_filtered = np.argmax(filter_mat_probs, axis=3)[filter_mat_boxes[0], filter_mat_boxes[1], filter_mat_boxes[2]] #找出对应的class
+        filter_mat_probs = np.array(probs >= self.threshold, dtype='bool')
+        filter_mat_boxes = np.nonzero(filter_mat_probs)
+        boxes_filtered = boxes[filter_mat_boxes[0], filter_mat_boxes[1], filter_mat_boxes[2]]
+        probs_filtered = probs[filter_mat_probs]
+        classes_num_filtered = np.argmax(filter_mat_probs, axis=3)[filter_mat_boxes[0], filter_mat_boxes[1], filter_mat_boxes[2]]
 
-        argsort = np.array(np.argsort(probs_filtered))[::-1] #按概率从大到小排序，返回排序索引值
-        boxes_filtered = boxes_filtered[argsort] #对应排序
-        probs_filtered = probs_filtered[argsort] #对应排序
-        classes_num_filtered = classes_num_filtered[argsort] #对应排序
+        argsort = np.array(np.argsort(probs_filtered))[::-1]
+        boxes_filtered = boxes_filtered[argsort]
+        probs_filtered = probs_filtered[argsort]
+        classes_num_filtered = classes_num_filtered[argsort]
 
-        '''非极大值抑制，，如果IOU大于阈值，则该box丢弃'''
         for i in range(len(boxes_filtered)):
             if probs_filtered[i] == 0:
                 continue
@@ -111,7 +109,6 @@ class Detector(object):
                 if self.iou(boxes_filtered[i], boxes_filtered[j]) > self.iou_threshold:
                     probs_filtered[j] = 0.0
 
-        #非极大值抑制后结果输出
         filter_iou = np.array(probs_filtered > 0.0, dtype='bool')
         boxes_filtered = boxes_filtered[filter_iou]
         probs_filtered = probs_filtered[filter_iou]
@@ -174,16 +171,16 @@ def main():
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 
     yolo = YOLONet(False)
-    weight_file = os.path.join(args.data_dir, args.weight_dir, args.weights) #weights文件路径
+    weight_file = os.path.join(args.data_dir, args.weight_dir, args.weights)
     detector = Detector(yolo, weight_file)
 
-    # 调用摄像头检测
-    #cap = cv2.VideoCapture('./test/asdf.mp4') #检测视频文件
-    #cap = cv2.VideoCapture(0) #打开摄像头
-    #detector.camera_detector(cap)
+    # Detect Video
+    # cap = cv2.VideoCapture('./test/asdf.mp4')
+    # cap = cv2.VideoCapture(0)
+    # detector.camera_detector(cap)
 
-    # 检测图像文件
-    imname = './test/person.jpg' #文件路径
+    # Detect Image
+    imname = './test/person.jpg'
     detector.image_detector(imname)
 
 
