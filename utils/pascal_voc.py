@@ -109,14 +109,12 @@ class pascal_voc(object):
         return gt_labels
 
     def load_pascal_annotation(self, index):
-        imname = os.path.join(self.data_path, 'JPEGImages', index + '.jpg')
-        im = cv2.imread(imname)
-        h_ratio = 1.0 * self.image_size / im.shape[0]
-        w_ratio = 1.0 * self.image_size / im.shape[1]
-
         label = np.zeros((self.cell_size, self.cell_size, self.num_class + 5))
         filename = os.path.join(self.data_path, 'Annotations', index + '.xml')
         tree = ET.parse(filename)
+        size=tree.find('size')
+        h_ratio = 1.0 * self.image_size / int(size.find('height').text)
+        w_ratio = 1.0 * self.image_size / int(size.find('width').text)
         objs = tree.findall('object')
 
         for obj in objs:
